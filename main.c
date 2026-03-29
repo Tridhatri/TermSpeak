@@ -1,15 +1,24 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <termios.h>
+#include <stdlib.h>
+struct termios orig_termios;
+
+
+void disableRawMode(void) {
+tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
 
 void enableRawMode(void) {
-  struct termios raw;
-  tcgetattr(STDIN_FILENO, &raw);
+  tcgetattr(STDIN_FILENO, &orig_termios);
+  atexit(disableRawMode);
+
+  struct termios raw = orig_termios;
   raw.c_lflag = raw.c_lflag & ~(ECHO);
   // ECHO is 1000, so ~ECHO is ...110111, And-ing with the existing c_lflag is basically setting the 4th bit to 0.
   // So , essentially, setting the fourth bit to 0.
 
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);i
+  tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
   // TCSAFLUSH means that apply the changes to termios struct referenced right now.
   // And do not wait for 
   
